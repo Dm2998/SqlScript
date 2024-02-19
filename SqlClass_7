@@ -1,0 +1,783 @@
+Contents:																										  Page
+
+
+		Data Definition Statements ( DDL ):		. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .	  3
+1.				CREATE TABLE
+2.				DROP TABLE
+3. 				ALTER TABLE  &  ADD CONSTRAINT
+4.				Special Note:  IDENTITY Columns and PKs
+5.				Complete Mini-Schema – Employee Scheme from Part A):
+
+
+		Data Manipulation Statements ( DML ):		. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .	  8
+6.				INSERT
+7.				UPDATE
+8.				DELETE
+
+
+		Stored Procedures:		. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  	15
+9.				Stored Procedure  with No	Parameters
+10.			Stored Procedure  with		Parameters
+11.			Call Procedure
+12.			E.g. Real Stored Procedure !   Reseed Officer example
+
+
+		Other Topics:			. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .  	x
+				Cursors.
+				Practice Joins
+				Suggest - Do 2 real SPs yourself – Simple ones like above – but you will learn !!
+
+
+
+
+
+
+
+
+ 
+
+1.		CREATE TABLE statement:
+
+*		After we as developers have designed our database by producing the Conceptual Data Model (CDM)
+ 		(not bought it! – it is the DBMS we buy!) then we must implement this CDM in our DBMS so the
+ 		 system can store our business data that we are modelling.  At the implementation stage, the 
+ 		Conceptual Data Model becomes an Entity Relationship Model.  This Entity Relationship model 
+ 		will have more detail than the Conceptual Data Model, as it will show for example precisely which 
+ 		of the 2 Primary keys in a 1 to 1 relationship will also become a Foreign Key (to implement 
+ 		the 1:1 relationship).
+
+*		This implementation will entail the writing of many CREATE TABLE statements.
+ 		There are many more components need for the implementation e.g. ALTER TABLE statements
+		ADD CONSTRAINT statements, Domain definitions, Function definitions, Stored Procedures
+		and many more.  	Collectively these will be known as the DATABASE SCHEMA.
+
+*		Each Table should have a Primary Key and may have several Foreign Keys.
+*		There are several ways of coding which columns are to be Primary Keys & Foreign Keys
+		so I will just list 1 method as shown in section 4.  It is the basic structure used in DEASP BOMi 
+ 		world.  However, note that in the real BOMi Database environment there will often be many more
+		clauses used – but the basic structure is as below which uses the ADD CONTSTRAINT syntax.
+
+*		Demonstration Database – Departments,  Employee  & Employee_Grades
+		This simple example is a Schema for the Employee & Department we met in Part A) of the course.
+
+*		Note the position of the DROP TABLE statements just before the CREATE TABLE statements
+		These are necessary in development if we want to amend our Table Definitions.
+		They will be explained in Section 3. 
+
+*		The generic syntax for the CREATE TABLE statement is quite straightforward:
+CREATE TABLE Table_Name (
+    Column_1                        datatype  NOT NULL, 	-- normally the PK
+    Column_2                        datatype,
+    Column_3                        datatype,
+    . . . .                         . . . . .
+    Column_n                        datatype
+);
+
+*		Example…
+CREATE TABLE Test_G_Employee (
+    Empl_No                         integer  NOT NULL, 	-- set as PK
+    Empl_Name                       varchar(25),
+    Empl_Age                        integer    ,
+    . . . .                         . . . . .
+);
+
+*		Q.		Why is the Column that is going to be defined as the PK defined as NOT NULL ?
+ 		A.		see next page...
+
+		A.		To ensure Database Integrity – Remember Rule 1 mentioned in Part A !!
+				There should not be a NULL in the Primary Key (PK).
+				This is because we want every row to be unique (uniquely identifiable).
+
+2.		DROP TABLE statement:
+
+*		The DROP TABLE is very straightforward.
+		It simply deletes the Table from the schema & all the data contained in it.
+*		One might want to use this when one wants to amend a table definition (in development)
+		whereby one would have the DROP statement just before the CREATE TABLE statement 
+ 		with the amended Table definition.
+		If we didn’t have the DROP statement the CREATE TABLE statement would fail with an error
+		Message stating that “the particular Table Already Exists”
+
+*		There is another way to amend a Table definition by using the ALTER TABLE statement.
+		but this may be more complicated in terms of the associated Update statements needed to 
+		populate the amended columns or extra columns or deleted columns.  It may also depend on 
+ 		whether one is changing definitions of Tables in Development or the Live. 
+
+		NB
+*		However, one must be careful with the DROP statements because if the Primary Key of the Table 
+ 		one is Dropping is also a Foreign Key in another Table, then one will get an error message stating
+				Msg 3726, Level 16, State 1, Line 1
+ 				Could not Drop object 'Test_G_Employee_Grade' 
+ 						because it is referenced by a FOREIGN KEY constraint.
+		The problem is that if one Deletes a Parent Record (table with PK) which has a Child Record 
+ 		(table with FK) then one would be left with what is known as a “Dangling Reference Node”.
+ 		A Child record without a Parent Record would break the 2nd of our very NB rules stated in Part A)
+ 		Referential Integrity – The Foreign Key value should be either a PK value or “wholly” Null.
+		
+		This implies that if we are amending a few Table definitions and by implication we have a number 
+		of corresponding DROP statements, then the Order of the Drop statements is very important.
+		Follow the rule:  Drop Child record/Table before one Drops the Parent record/Table.
+
+3.		ALTER TABLE  &  ADD CONSTRAINT  statements:
+
+*		The ALTER TABLE  &  ADD CONSTRAINT statements can be used here 
+ 		to define PKs & FKs i.e. Primary Keys and Foreign Keys on the various Tables in the schema.
+*		The syntax to Define a Primary Key (PK) is straightforward and 
+		We will use the generic syntax for the ALTER TABLE  &  ADD CONSTRAINT statements:
+
+ALTER TABLE Table_Name
+   ADD CONSTRAINT Constraint_Name   PRIMARY KEY CLUSTERED (Column_Name ASC);
+
+ 		Using Naming convention ...Constraint_Name = Column_Name_PK
+		Gives…
+ALTER TABLE Test_G_Department
+    ADD CONSTRAINT G_Dept_Code_PK     PRIMARY KEY CLUSTERED (Dept_Code ASC);
+*		Note there 3 PK examples given in the Mini-Employee Schema.
+*		The general syntax to Define a Foreign Key (FK) is also straightforward:
+ALTER TABLE Table_Name1  					(where the FK is to be placed )
+   ADD CONSTRAINT Constraint_Name  
+       FOREIGN KEY (Column) REFERENCES Table_Name2 (Dept_Code);
+																		where the PK is ( PK Column )
+		Using Naming convention ...Constraint_Name = Column_Name_FK
+		Gives…
+ALTER TABLE Test_G_Employee
+   ADD CONSTRAINT Dept_Code_FK  
+       FOREIGN KEY (Dept_Code) REFERENCES Test_G_Department (Dept_Code);
+
+4		Special Note:    Identity Columns and PKs:
+		In quite a large number of tables in the Database dbBommain in the BOMi world, 
+ 		the Primary Key of the Tables are defined as what is called an “Auto Generated Identity Key”.
+		This Identity Key is a single column of “Numeric” Data Type.  
+		When a new Record with an Identity Column as the Primary Key (usually the 1st column)
+		Then, the value for this column will be auto-generated by the database 
+ 				using the next available number normally incremented by 1.
+		In the case of a Customer Record – there are 2 tables involved Customer & Customer_Link.
+  		Both these tables have the Customer_Id as the PK  (& it is FK for the C table).  This column
+		is defined as an Identity column on the Customer_Link table (not on Customer).
+		The value for this column Customer_Id on the Customer_Link table will be auto-generated 
+ 				by the database using the next available number - normally incremented by 1.
+				This number will be inserted into its corresponding Customer record.
+		Right Click - Properties on Customer_Link - Customer_Id to see whree Identity is defined.
+ 		This definition can also be seen in via Script Table as – Create To option in the Object Explorer.
+ 
+
+		The value of the Identity col  for the next record can be Over-ridden with a few special commands.
+		 		SET  IDENTITY_INSERT   ON  or  OFF ….
+		See File:		SQL_Live_14_Address_Insert_New_Rec_Rosbrien_Limerick.sql   
+		This is an example from the PIMS – MSDU Photocopier Database for more details.
+
+5.		Complete Mini-Schema – Employee Scheme from Part A):
+
+ 				File:	 DB_1_Mini_Pers_System_CREATE_Schema.sql
+--  ------------------------------------------------------------------- --
+--       Mini Employee Schema – CREATE / ALTER / ADD -- G. McCabe       --
+--  ------------------------------------------------------------------- --
+USE  [dbBommain] -- Created on work PC
+
+--  Note 1: Use DROPs in case Amend the Table Definitions & Reload the DB
+--  Note 2: Must DROP Table B with FK to table A before one can DROP table A
+--  NB    : => Order of DROPS is very NB here.
+
+-- Had to change order because of FK constraint => Change Emp from #2 to #1
+DROP TABLE Test_G_Employee;     -- the “middle” table (has FKs) in our model
+DROP TABLE Test_G_Department;
+--DROP TABLE Test_G_Employee;   —- need reposition to 1st DROP of the 3
+DROP TABLE Test_G_Employee_Grade;
+
+CREATE TABLE Test_G_Department (
+    Dept_Code                    character varying(6) NOT NULL, -- set as PK
+    Dept_Description             character varying(20)
+-- In BOMi world - 3 fields used at end of each Table Definition 
+--    LAST_ACTIVITY_DATE            datetime , -- without time zone,
+--    USERNAME                      character varying(12),
+--    PROGRAM_ID_CODE               character varying(15)
+);
+
+CREATE TABLE Test_G_Employee (
+    Empl_No                         integer  NOT NULL, 	-- set as PK
+    Empl_Name                       varchar(25),
+    Empl_Age                        integer    ,
+    Dept_Code                       varchar(6) , 				-- Set as FK
+    Grade_Code                      varchar(3) 					-- Set as FK
+);
+
+CREATE TABLE Test_G_Employee_Grade (
+    Grade_Code                      varchar(3)  NOT NULL, -- set as PK
+    Grade_Desc                      varchar(25),
+    Grade_Days_Leave                varchar(25),
+    Grade_Annual_Salary             decimal(8,2)
+);
+
+-- Ensure we have 3 “fresh empty” Tables
+SELECT * FROM Test_G_Employee;       -- will = 0 recs until Insert
+SELECT * FROM Test_G_Employee_Grade; --   ”    ”  ”     ”      ”   
+SELECT * FROM Test_G_Department;     --   ”    ”  ”     ”      ”   
+
+-- Define the PKs & FKs
+--	 See next page.
+
+-- Define the PKs
+
+ALTER TABLE Test_G_Department
+    ADD CONSTRAINT G_Dept_Code_PK     PRIMARY KEY CLUSTERED (Dept_Code ASC);
+
+ALTER TABLE Test_G_Employee
+    ADD CONSTRAINT G_Empl_No_PK       PRIMARY KEY CLUSTERED (Empl_No ASC);
+
+ALTER TABLE Test_G_Employee_Grade
+    ADD CONSTRAINT G_Grade_Code_PK    PRIMARY KEY CLUSTERED (Grade_Code ASC);
+
+-- Define the FKs
+
+ALTER TABLE Test_G_Employee
+   ADD CONSTRAINT Dept_Code_FK  
+       FOREIGN KEY (Dept_Code) REFERENCES Test_G_Department (Dept_Code);
+
+ALTER TABLE Test_G_Employee
+   ADD CONSTRAINT Grade_Code_FK   
+      FOREIGN KEY (Grade_Code) REFERENCES Test_G_Employee_Grade (Grade_Code);
+
+
+
+
+
+-- Separate Example of PK defined using 3 Columns:
+-- ALTER TABLE payment
+--   ADD CONSTRAINT payment_pk    
+--     PRIMARY KEY CLUSTERED (rsi_no ASC, tax_year ASC, payment_seq_no ASC);
+
+
+
+
+--  END  CREATE & ALTER & ADD  ---------------------------------------- --
+
+ 
+6.		INSERT statement:
+
+*		After we as developers have designed our database (the Conceptual Data Model) and used the
+ 		CREATE & ALTER commands to create our actual database, then we need to populate it
+		with Data in order to test the application we are developing.  We will do this via 1 of 2 ways.
+		a)		Use the INSERT statement in SQL command files (script).
+		b)		Use the INSERT statement via embedded SQL within our Application C# code.
+
+*		The generic syntax for the INSERT statement is quite straightforward:
+INSERT INTO	Table_Name
+ 						( Column_1   ,  Column_2,  , , , , Column_N )
+ 						VALUES ( 'char val' ,  12345   ,  , , , , 'abcde'  )
+*		Example…
+INSERT INTO	Test_G_Department
+ 						( DEPT_CODE,   DEPT_DESCRIPTION )
+ 						VALUES ( 'ISD'    ,  'Information Systems Division')
+
+*		As can be seen there are only 3 items:  the Table Name, the Column Names and the Column Values
+		NB:	You do not have to actually specify the Column names. 
+				However, I recommend you do specify them – at least for the 1st Insert – see demo below.
+				otherwise you are likely to make a typing mistake in assigning the correct value to the 
+				associated column.   Believe me, for a Table with 30 columns, you will make a mistake !!!
+
+*		At a minimum, the INSERT statement will just need to specify a PK value.
+ 		There may be up to 4 ways that values may be specified in the INSERT statement
+			1.	 An INSERT statement with just the PK value specified – not likely but possible.
+			2.	 An INSERT statement with No PK value specified as the PK = an Identity column.
+			3.	 An INSERT statement with the PK value specified & All of the column values specified.
+			4.	 An INSERT statement with the PK value specified & Some of the column values.
+						interspersed by a series of commas “,” for those columns where value is not specified
+						e.g. values ( 'ISD', 'Information Systems Division', , , 250 )
+						In this case “Default values” may be assigned for those columns not specified.
+			Note that variation 3.  i.e. specifying All of the column values would be the norm.
+
+*		As mentioned at Section 4  Identity Columns & PKs earlier:
+ 		If there is an Identity Column as the PK, then for the INSERT statement
+ 		Then for the INSERT statement, one may either 
+ 			a)	  Omit the PK value
+ 		or	b)	  Override the Auto-Generated value and plug in a variable with a value you decide instead.
+
+
+*		A Neat & Exact (spacing wise) Layout for one’s INSERT statements is Very Important.
+		Else:  You will make Mistakes !! Be Warned !! 
+ 		Some of these you will notice straight away – some you won’t (e.g. data entered in wrong column)
+		and will lead to bugs and actual errors in the application for Customers concerned.
+
+
+
+*		It is also possible to INSERT record(s) to a Table using a SELECT statement producing values
+		from another table or combination of tables (Join).
+		Example: 	See the e.g. below where an INSERT statement takes its column values from 
+				The result set of a SELECT statement that Joins 3 tables.
+ 				It is taken from the Self Employed (SEMP) Migration Project I worked on a few years ago
+
+--  --------------------------------------------------------------------- --
+--       SEMP - Self Employed Migration Project   G. McCabe               --
+--  INSERT into 2nd Purge Table with embedded SELECT Join across 3 tables --
+--  ------------------------------------------------------------------- ----
+INSERT INTO vms_Purge_OldNo_NewNo_43417 
+						(	Old_Ppsn,  New_Ppsn,  Alt_Id_Source_Code     )
+			SELECT		A.RSI_NO,  C.RSI_NO,  B.ALT_ID_SOURCE_CODE
+				FROM		Semp_Purge_Cv_list_43420			A,
+ 							Bomi_Customer_Alt_Id_6036962	B,
+							Bomi_Customer_Link_7595336		C
+				WHERE	( 			( A.RSI_NO			=	B.ALT_PPS_NO		)
+							  And		( B.CUSTOMER_ID	=	C.CUSTOMER_ID	) );
+-- Result:	43403 records (14 Missing) 
+--  				These 14 recs not on all 3 Tables (Try find later ??)
+--  ------------------------------------------------------------------- ----
+
+*		Demonstration Database – Employee & Departments (Part A) of Course - INSERTs
+					File:	 DB_1_Mini_Pers_System_INSERT_Recs.sql
+--  ------------------------------------------------------------------- --
+--         Mini Employee Schema -– INSERTs  -- G. McCabe                --
+--  ------------------------------------------------------------------- --
+USE  [dbBommain] -- Created on work PC
+
+-- NB:  Order of DELETEs NB because of PKs, FKs 
+--      * DELETE Tables with FKs 1st - Child before Parent.
+--      * Test in different Order to see an ERROR
+--      * Toggle On/Off the Comments for DELETEs and use as required.
+
+DELETE FROM  Test_G_Department;   
+DELETE FROM  Test_G_Employee;    -- Do as 2nd Del to show Ref Integrity Error
+DELETE FROM  Test_G_Employee_Grade; 
+
+DELETE FROM  Test_G_Employee;    -- Do as 1st Del to show Clean delete.
+DELETE FROM  Test_G_Department;     
+DELETE FROM  Test_G_Employee_Grade; 
+
+
+SELECT * FROM Test_G_Department; 		 -- Ensure records Deleted
+SELECT * FROM Test_G_Employee;				 --   ”		 ”					”
+SELECT * FROM Test_G_Employee_Grade;	 --   ”		 ”					”
+
+
+
+--  ------------------------------------------------------------------- --
+-- NB: Order of INSERTs NB because of PKs, FKs 
+--     * INSERT Tables with PKs to be posted as FKs 1st - Parent before child
+--     * Test in different Order to see an ERROR
+
+INSERT INTO Test_G_Department
+            ( DEPT_CODE,   DEPT_DESCRIPTION )
+     VALUES ( 'ISD'    ,  'Information Systems Division');
+
+INSERT INTO Test_G_Department
+     VALUES ( 'PERS'   ,  'Personnel') ;
+
+INSERT INTO Test_G_Department
+     VALUES ( 'INTREO' ,  'Intreo Offices') ;
+
+--  ------------------------------------------------------------------- --
+
+INSERT INTO Test_G_Employee
+            ( EMPL_NO,   Empl_Name, Empl_Age, Dept_Code, Grade_Code )
+     VALUES ( '05'   ,  'Gary'    , 25      , 'ISD'    , 'HEO'      ) ;
+
+INSERT INTO Test_G_Employee
+     VALUES ( '08'   ,  'Ciara'   , 22      , 'PERS'   , 'EO'       ) ;
+
+INSERT INTO Test_G_Employee
+     VALUES ( '15'   ,  'Denise'  , 18      , 'INTREO' , 'AO'       ) ;
+
+INSERT INTO Test_G_Employee
+     VALUES ( '42'   ,  'Barry'   , 18      , 'ISD'    , 'AO'       ) ;
+
+-- Null in FKs
+INSERT INTO Test_G_Employee
+     VALUES ( '35'   ,  'Jimmy'   , 24      , Null    , Null        ) ;
+
+--  ------------------------------------------------------------------- --
+
+INSERT INTO Test_G_Employee_Grade
+          ( Grade_Code,  Grade_Desc, Grade_Days_Leave, Grade_Annual_Salary )
+     VALUES ( 'HEO'    ,  'Higher Executive Officer', 25, 20000.56 ) ;
+
+INSERT INTO Test_G_Employee_Grade
+     VALUES ( 'EO'     ,  'Executive Officer',        24, 19000.12 ) ;
+
+INSERT INTO Test_G_Employee_Grade
+     VALUES ( 'AO'     ,  'Administrative Officer',   24, 19000.12 ) ;
+
+
+
+
+
+
+--  ------------------------------------------------------------------- --
+--  Example of ERROR Message (SEMP e.g.):
+--  -------------------------------------
+
+--  Attempt to Insert Child Record where No Parent Record exists 1st
+--  Message is Effectively stating Rule 2 Referential Integrity is Broken.
+--  ------------------------------------------------------------------- --
+
+--  Note: ERROR EG. on PK FK links
+--  If a PK FK link exists but No Row in PK side => INSERT ERROR EG.:
+--    Msg 547, Level 16, State 0, Line 50
+--		The INSERT statement conflicted with the FOREIGN KEY constraint 
+		"payment_sd_fk". The conflict occurred in database "Gary_DB_Semp_Test1", 
+		table "dbo.annual_debt_sd".  The statement has been terminated.
+
+--  Reason:  Annual_Debt_SD Row PK values = '2222222B' 2008 
+--           Payment        Row FK values = '2222222B' 2009
+
+--  Solution: Amend PK Value 2008 to 2009				This was CRUD Data Issue.
+
+SELECT * FROM Test_G_Department;
+SELECT * FROM Test_G_Employee;
+SELECT * FROM Test_G_Employee_Grade;
+
+
+
+--  END  INSERT  ------------------------------------------------------ --
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+7.		UPDATE statement:
+
+*		We may have a requirement to change the values of particular columns of a particular single row 
+ 		of a Table or we may need to change the values of the columns many rows.
+		We can do this with the UPDATE statement and we specify which rows we target by
+		an appropriate WHERE clause.
+
+*		Sometimes in SQL discussion or Docs the word “Update” can be mean slightly different things:
+		1.  It can refer to the general updating of the DB via INSERT, UPDATE and DELETE commands.
+		2.  It may mean just the actual UPDATE Statement.
+
+*		Be Ultra Careful with the syntax – especially the mis-placement of a Semi-Colon “;”
+		and the WHERE clause ends up being disregarded !
+		You may end up Updating Every row in the Table – On the Live !!!   I have !!!  
+		Is there anything up with the following Statement ??    (e.g. from ISTS about 1996).
+ UPDATE	Loc_Phys_Terminal
+	  SET	Lo_Code 		=   666	,			-- an appropriate number !
+				Usernname	=  'GMcC';
+	WHERE	Loc_Phys_Terminal_Id = ‘TTO001P4’; 		
+
+*		The generic syntax for the UPDATE statement is quite straightforward…
+ UPDATE	Table_Name
+	  SET	Column_1  =  'char val'	,
+				Column_2  =   number 		,
+				Column_3  =  'char val'	,
+				. . . . .							,
+				Column_N  =  'char val'			-- no comma “'” 
+	WHERE	Column_X  =  'char val'; 		-- If column to compare is char based
+
+	or
+	WHERE	Column_Y  =  number; 				-- If column to compare is number based
+
+*		Example…
+ UPDATE	dbo.Correspondence_Address
+		SET	corres_addr2		=  '29 New Road'	,
+				corres_addr3		=  'Bandon'			,
+				record_Vers_no	=  2
+	WHERE	customer_id		= 681;
+
+-- Verify the Update
+SELECT * FROM dbo.Correspondence_Address  WHERE  customer_id = 681;
+
+		See File:		SQL_4_Extra_UPDATE_Notes_CR.sql
+		This is a small Command File to demonstrate a typical small Update session.
+		The code is reproduced on next page…
+
+
+--  ------------------------------------------------------------------- --
+--    File:  SQL_4_Extra_UPDATE_Notes_CR.sql -- G. McCabe               --
+--    SQL UPDATE mini session - Be careful                              --
+--  ------------------------------------------------------------------- --
+USE [dbBommain];
+
+SELECT count(*) FROM dbo.Correspondence_Address;
+SELECT TOP 10 * FROM dbo.Correspondence_Address;
+SELECT *        FROM dbo.Correspondence_Address  WHERE customer_id = 681;
+
+--customer_id	corres_addr1	                corres_addr2	       
+  			corres_addr3	corres_county_name	county_code	corres_country_name	crs_segment	record_vers_no	program_id_code		la_date_time	la_user_id
+	681	        C/ORosemaryOSullivan DunAengus		24 TheCrescent 
+			Ballintemple 	CORK 						C   	IRELAND     
+	2035					1						S2			2009-10-14 09:38:35.477			12690
+
+--  Update some columns to New Values for a particular record.
+--  NB – 
+--  If you forget the WHERE clause or have “;” in wrong place
+--  Then  you will update every record on the Table !!!! BEWARE.
+
+UPDATE		dbo.Correspondence_Address
+	 SET		corres_addr2		=  '29 Test Road'	,
+ 				corres_addr3		=  'Bandon'			,
+				record_Vers_no	=  2
+ 	WHERE	customer_id		= 681;
+
+-- Verify the Update
+SELECT * FROM dbo.Correspondence_Address  WHERE  customer_id = 681;
+
+-- Update again to Original Values
+UPDATE		dbo.Correspondence_Address
+	 SET		corres_addr2		=  '24 The Crescent'	,
+ 				corres_addr3		=  'Ballintemple'			,
+				record_Vers_no	=  1
+ 	WHERE	customer_id		= 681;
+
+-- Verify the Update
+SELECT * FROM dbo.Correspondence_Address  WHERE  customer_id = 681;
+
+--  END  UPDATE  ------------------------------------------------------ --
+
+
+
+
+
+
+
+
+
+8.		DELETE statement:
+
+*		We may have a requirement to DELETE complete rows of data from a Table.
+ 		We may need to  1.  Delete a Single Row of data.
+ 								2.  Delete several rows of data.
+								3.  Delete all rows of data.
+		We can do this with the DELETE statement and we specify which rows we target by
+		an appropriate WHERE clause.
+
+*		Be Ultra Careful with the syntax – especially the mis-placement of a Semi-Colon “;”
+		You may end up Updating Every row in the Table – On the Live !!!  
+		I have !!! and it wasn’t a pleasant experience !!
+
+*		The generic syntax for the DELETE statement is quite straightforward…
+
+-- Delete 1 specific row
+DELETE FROM  Table_Name WHERE  PK_Column_Name			= 123;
+
+-- Delete 1 specific row
+DELETE FROM  Table_Name WHERE  PK_Column_Name 		= 'abc';
+
+-- Delete 0 to many rows
+DELETE FROM  Table_Name WHERE  Non_PK_Column_Name	= 'abc';
+
+-- Delete All rows 
+DELETE FROM  Table_Name  										
+
+*		Examples…
+--  If this record has its PK posted to another table as a FK 
+--  Then Delete the record with FK first !!
+DELETE FROM  Table_X		WHERE PK_Column_Name = 22;  -- Delete 1   record
+
+-- Delete All records  -- BE CAREFUL
+DELETE FROM  Table_Y;														
+
+
+
+--  END  DELETE  ------------------------------------------------------ --
+
+
+
+
+
+ 
+
+9.	-	11			Stored Procedures:
+
+*		Stored Procedure  with No Parameters
+*		Stored Procedure  with Parameters
+*		Run / Call Procedure  ( Exec command)
+
+*		Purpose:
+		Stored Procedures enable us to effectively write “programs” in SQL in order to do some
+		specific data related processing.  Many of these “programs” work behind the scenes in that
+		the front-end application never sees them (but may depend on their work being already done).
+		The front-end applications may also use some Stored Procedures deep within its code base.
+		After they are written and tested, they are then Loaded up into the Database and end up
+		being listed in Programmability on the Left Hand side hierarchy of the Database.
+
+*		Real Example & size:
+*		I worked on one quite large Stored Procedure – it was in fact about 5000+ lines of  SQL.
+		Containing 1 very large main Stored Procedure and about 7 small separate stored procedures.
+		The main procedure is named 00300_usp_rw_XST_Reseed_Officers.sql
+		This procedure runs (like a batch program) every morning when the BOMi system is brought up.
+		and populates certain tables with officers data (users of the system).
+		The SQL ccode was in a complete mess (mega nested IF statements in a heap!) etc 
+		and bombed nearly every 2nd day.
+		I actually ended up re-writing the whole Stored Procedure – all 5000 + lines from scratch.
+		View it and see – it is well laid out (at 2013) – and looks straight forward – however, because 
+		it is so large, it is not easy to keep track of all the processing.  It was in good shape then in 2013.
+
+*		Demonstration – 2 SPs & 1 command file:
+		The best way to understand Stored Procedures is to see & run some demonstration ones.
+		I have written 2 very small Stored Procedures that do a small amount of work
+ 		and also a 3rd SQL Command File to run (exec) the 2 procedures.
+				usp_SP_Test_3_Call_Generic.sql
+				usp_SP_Test_4_Actual_Generic.sql
+				SQL_EXEC_usp_SP_Test3.sql
+*		Note that the work done in the 2 Stored Procedures is very trivial but that is not the point.
+		The point is they give the structure and syntax for several Stored Procedure constructs.
+			-	Define Stored procedure with NO parameters passed.
+			-	Define Stored procedure with 3     parameters passed.
+			-	Declare variables.
+			-	Assign values to variables.
+			-	Call another Procedure from within the SP.
+ 			-	Check value of Parameter passed into SP.
+			-	IF THEN ELSE statement.
+			-	Print statement (also useful for informal debugging).
+*		Note also that the 1st time one tries to load the SP to the database one should use a 
+				CREATE PROCEDURE . . . .
+		After that as one develops the SP by adding more SQL one should use a 
+				ALTER PROCEDURE  . . . . 
+						usp_SP_Test_3_Call_Generic.sql
+--  ------------------------------------------------------------------- --
+--    File:  usp_SP_Test_3_Call_Generic.sql -- G. McCabe                --
+--    SQL STORED PROCEDURE e.g.                                         --
+--  ------------------------------------------------------------------- --
+
+--Create PROCEDURE [dbo].[usp_SP_Test_3_Call_Generic]
+
+-- In order to prevent all students having the same SP Name (will get errors)
+-- therefore students should use a Naming convention as follows ... 
+--   
+--Create PROCEDURE [dbo].[AA_usp_Emer_SP_Test_3_Call_Generic]
+
+---------------------------------------------------------------------------
+--    This Procedure (SP 3) Procedure 
+--       1. Has NO input parameters
+--       2. Declares some variables
+--       3. Assigns Values for Gary
+--       4. Calls SP 4 passing 3 parameters (1st time)
+--       5. Assigns Values for Mystery
+--       6. Calls SP 4 passing 3 parameters (2nd time)
+--    SP 4 then
+--       1. Checks value of 1st Parameter passed in
+--       2. If   value is '1111111F' code will do 1 set of instructions
+--          Else                     code will do 2nd set of instructions
+--  ------------------------------------------------------------------- --
+ALTER PROCEDURE [dbo].[usp_SP_Test_3_Call_Generic]
+--Create PROCEDURE [dbo].[usp_SP_Test_3_Call_Generic]
+--Create PROCEDURE [dbo].[AA_usp_Emer_SP_Test_3_Call_Generic]
+
+-- No Input Parameters
+
+AS
+BEGIN
+
+--  Declare Some Internal Params
+    declare @p_ppsn   varchar(9);
+    declare @p_name   varchar(9);
+    declare @p_age    int;
+
+--  Set Params to Values
+    set     @p_ppsn = '1111111F';
+    set     @p_name = 'Gary is so cool....!';
+    set     @p_age  =  28;
+
+--  Call usp_SP_Test_4_Actual_Generic - 1st Time
+--  EXEC    [dbo].[ AA_usp_Emer_SP_Test_4_Call_Generic]
+    EXEC    [dbo].[usp_SP_Test_4_Actual_Generic]
+                   @p_ppsn,  @p_name,  @p_age;
+
+--  Set Parameters to Values & Call Generic SP #4
+    set     @p_ppsn = '2222222G';
+    set     @p_name = 'Mystery';
+    set     @p_age  =  25;
+
+--  Call usp_SP_Test_4_Actual_Generic - 2nd Time
+--  EXEC    [dbo].[ AA_usp_Emer_SP_Test_4_Call_Generic]
+    EXEC    [dbo].[usp_SP_Test_4_Actual_Generic]
+                   @p_ppsn,  @p_name,  @p_age
+END
+GO
+--  END  SP3  --------------------------------------------------------- --
+
+
+						usp_SP_Test_4_Call_Generic.sql
+--  ------------------------------------------------------------------- --
+--    File:  usp_SP_Test_4_Call_Generic.sql -- G. McCabe                --
+--    SQL STORED PROCEDURE e.g.                                         --
+--  ------------------------------------------------------------------- --
+--    This Procedure (SP 4) Procedure 
+--       1. Is called from SP 3
+--       2. It Has 3 input parameters
+--       3. Checks value of 1st Parameter passed in
+--       4. If   value is '1111111F' code will do 1 set of instructions
+--          Else                     code will do 2nd set of instructions
+--  ------------------------------------------------------------------- --
+
+  ALTER PROCEDURE [dbo].[usp_SP_Test_4_Actual_Generic]
+--ALTER PROCEDURE [dbo].[AA_usp_Emer_SP_Test_4_Actual_Generic]
+
+--Create PROCEDURE [dbo].[usp_SP_Test_4_Actual_Generic]
+         @par_ppsn    varchar(9),
+         @par_name    varchar(9), 
+         @par_age     int
+AS
+BEGIN
+--  Algorithm (Genericised)
+--  =======================
+--  Params Passed in from Calling Procedure usp_SP_Test_3_Call_Generic
+--  If (Cond1) 
+--     Do Something
+--  Else 
+--     Do Something else
+
+--  Declare Some Internal Params -- May need for eg @v_qcCode etc.
+    declare @v_name   varchar(9)   
+
+    if  @par_ppsn = '1111111F'   -- Result = depends on what is passed in
+      begin
+         print 'Am Here 1'
+         print '@par_ppsn = ' + @par_ppsn
+         print '@par_name = ' + @par_name
+         print '@par_age = '  + @par_age      -- Just to show Print Error
+--         print '@par_age = '  + convert(varchar(25), @par_age)
+--         SELECT * FROM Table_1;      -- Error Message if not run on LAPTOP
+      end
+    else
+      begin
+         print 'Am Here 2'
+         print '@par_ppsn = ' + @par_ppsn
+         print '@par_name = ' + @par_name
+         print '@par_age = '  + convert(varchar(10), @par_age)
+--         SELECT * FROM Table_2;     -- Error Message if not run on LAPTOP
+      end;
+
+END  -- SP
+GO
+--  END  SP4  --------------------------------------------------------- --
+
+						SQL_EXEC_usp_SP_Test3.sql
+--  ------------------------------------------------------------------- --
+--    File:  SQL_EXEC_usp_SP_Test3.sql -- G. McCabe                     --
+--    This SQL Command File:  --  Executes SP 3
+--    SP 3                 :  --  Executes SP 4 twice
+--  ------------------------------------------------------------------- --
+Use [dbBommain]
+exec usp_SP_test_3_Call_Generic    -- No need pass in Params to Calling SP
+
+-- Expected Results:
+--     => Am Here 1 + Print 3 Variables (if Test DB set up: Print Table_1)
+--     => Am Here 2 + Print 3 Variables (if Test DB set up: Print Table_2)
+
+-- Set up a Small Test Database [GaryTest1]
+-- => SELECT * from dbo.Table_1;
+--    G1     G2         G3
+--    -----  ---------  ----------
+--    1      Gary       New Road  
+--    2      Anne       Old Road  
+--    3      Sandra     New Street
+
+--  END  SQL_EXEC  ---------------------------------------------------- --
+
