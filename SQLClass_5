@@ -1,0 +1,340 @@
+
+Objectives:	 SQL Server 2012 Introductory Session
+
+		*		To provide an introductory appreciation of the subject of Relational Databases.
+		*		To provide an introductory appreciation of the SQL Server Environment (& Bomi).
+
+
+Part A)		Introduction – From Flat-File systems to Relational Databases (RDBs)
+		*		To explain traditional “Flat File systems” and the potential problems associated with them.
+						*		A Flat File example
+						*		Potential Problems associated 
+						*		Potential Anomalies associated 
+		*		To explain the development of newer “Relational Database systems” (RDB).
+						*		The Goal of RDB systems
+						*		An RDB example
+						*		An Entity Relationship Diagram
+						*		Some basic RDB definitions
+						*		Compare Flat File v RDB terms
+
+Part B)		Connecting to SQL Server & Intro to SQL SELECT
+		*		To connect to a particular SQL Server 2012 database and use some basic SQL.
+
+Part C)		SQL Server SELECT
+		*		To show syntax & demonstrate the action of SQL Select commands:
+ 						Generic format,  Date formats, Joins,  Temp Tables,  Stored Procedures et al.
+
+Part D)		SQL Server Data Definition Statements;  Update Statements
+		*		To show syntax & demonstrate the action of SQL DDL & Update commands:
+						Create,  Drop;  Insert,  Update  &  Delete et al.
+
+1.		Flat File Systems:
+
+Traditionally, Application Programs used in the Dept of Social Protection accessed and updated
+data in what we call “Flat File Systems”.  This type of set up meant some programs accessed
+some files of Data while other programs accessed other files.  A new program may have used
+existing files and also some new files.  Some of the information on the new file may already have 
+been held on the existing files for different applications.  These files would have been of normal types:
+			Sequential,  
+			Indexed Sequential  
+			Relative Files   ( no longer used )
+
+Though most of the Department’s computer Application systems are using Relational Databases,
+there are still some systems that use Flat Files as part of their processing.  In time these will be phased 
+out.   Example:  The CRS (central records system) uses RDB on the VMS operating system, it also 
+makes significant use of Flat Files for example in Batch Processing e.g.  Flat Files are transferred between DSP and the Revenue.  (as at 2017).  In time these will be phased out.
+ 
+
+							Traditional Flat File System
+
+ 
+
+
+The following is a simple Flat File system recording data about Staff in Training Unit & Personnel.
+
+									File 1
+
+
+EMPLOYEE NO	NAME	AGE	DEPT CODE	DEPT DESC	GRADE CODE	GRADE DESC	GRADE
+ DAYS LEAVE
+001	Sandra	22	IS	Computer Division	CO	Clerical Officer	21
+002	Mary	26	PERS	Personnel	HEO	Higher Executive Officer	26
+003	Veg	31	IS	Computer Division	EO	Executive Officer	22
+004	Gary	25	IS	Computer Division	HEO	Higher Executive Officer	26
+005	Pearse	24	IS	Computer Division	HEO	Higher Executive Officer	26
+
+
+									File 2     (a separate file – perhaps because of confidential information)
+
+EMPLOYEE
+NO	EMPLOYEE
+NAME	SALARY
+001	Sandra	X000
+002	Mary	Y000
+
+Q.		What Problems does this type of File system exhibit ?
+A.		There are various  Problems  &  Anomalies  exhibited within this system.
+		* Nb	Problem - Duplication of Data  -  Possible Inconsistencies :									
+				Each set of application programs in a system “tends” to have its own set of Private files.
+				Inconsistencies may arise if data in one file is updated but not the other  eg. “Name”. 	
+																																		
+		* Nb	Problem - Duplication of Data  -  Wasteful – Space – Retrieval Times:					
+				Consider the information that “HEO is a Higher Executive Officer” is recorded 3 times. 
+				If we were to record all the HEOs in DSFA, then we would be recording this information 
+				1500+ times!  If ISTS (an RDB system) was implemented like this, then the fact that
+				“JB & JA” are “Jobseekers Benefit & Allowance” might be recorded 140,000 times-2017
+																																		
+		*		Update Anomolies:		INSERT																			
+				Some facts  -  we can Insert;     Some facts  -  we can’t Insert.
+				We can insert a new row such as:
+006	VINCENT	27	IS	COMPUTER DIVISION	AP	ASSISTANT PRINCIPAL	30
+ 
+				However, we can’t insert the information:
+					PO	PRINCIPAL OFFICER	30
+
+				The problem is that in order to store a row we must specify a “Key” value for each row.
+				but we don’t have a Key with the  “PO”  information as we have no corresponding value
+				for Employee Number.  ( In the equivalent RDB scenario, to have a PK value of NULL
+				would violate the Nb rule of “Entity Integrity”  - see later).										
+																																		
+		*		Update Anomolies:		DELETE																			
+				Deletion of some facts  may		result in a loss of information.
+				Deletion of other facts  will not	result in a loss of information.
+				If we Delete the row for Sandra:
+001	SANDRA	22	IS	COMPUTER DIVISION	CO	CLERICAL OFFICER	21
+
+				then we lose the information that CO   CLERICAL OFFICER    21 Grade Days Leave.
+				However, if we Delete the row for Gary:
+004	GARY	25	IS	COMPUTER DIVISION	HEO	HIGHER EXECUTIVE OFFICER	21
+
+				then we don’t lose the information that  HEO    HIGHER EXECUTIVE OFFICER   
+				26 Grade Days Leave  because this information is recorded in other rows.						
+																																		
+		*		Update Anomolies:		UPDATE																			
+				These UPDATE anomalies are not as severe as the INSERT and DELETE anomalies.
+				Updating of some facts involving a Key 				change a single row
+				Updating of some facts not involving a Key			change many rows – an onerous task!
+				If we want to update a Name – e.g.  Sandra X  to  Sandra Y:
+001	SANDRA Y	22	IS	COMPUTER DIVISION	CO	CLERICAL OFFICER	21
+
+				then we only change 1 row.
+				If we want to update the Grade Days Leave for  HEO  from  26  to  27:
+					HEO	HIGHER EXEC. OFFICER	27
+
+				then we have to trawl through the whole file and change 3 rows (140,000 for JB/JA eg).
+
+2.		RDB Systems:
+
+As explained above, the Flat File system can lead to a potentially undesirable structure.
+
+										Relational Database System
+
+ 
+
+The Goal of a Relational Database (RDB) is to store “Information” ( not “Data” ) in one place only.
+Note the subtle distinction between  Data  versus  Information  ( & Knowledge).
+		Q.		Is  “25”  Data or Information?
+		A.		It is data.
+		Q.		Is  “25 is the age of Gary!!”  Data or Information?
+		A.		It is Information.
+				Information	is Data with context.
+				Knowledge	is the use of this information;  for example, to enforce a business rule.
+
+However,  “information” is sometimes duplicated in a RDB system.  The reason for this is usually
+accessibility of data in 1 rather than 2 tables (De-normalisation – this is an advanced database 
+design principle – beyond scope of this course).
+Data e.g.:	In the VMS environment a PPS No., will be duplicated in a RDB system.  
+A particular PPS No will be recorded in various tables because of Primary Key/ Foreign Key links 
+– see later.  This is a necessary part of database design and note the “information” will generally 
+not be duplicated.
+
+Nb:  In the SDM BOMi environment, a customer’s PPS No., is stored once in the Customer_Link table.
+	   However, there are a few exceptions – it is also stored on a few other tables used for printing.
+In this table, each customer’s pps_no will have a corresponding customer_id & it is this _id field-data
+		  that is duplicated many times in the SQL Server BOMi Database tables.  
+E.g.  The Customer_Link table is related to the Customer table via the customer_id and
+		  it is this ID field (data) that is recorded in the Customer table along with other information 
+		  such as firstname,  surname  etc.
+
+
+
+An Equivalent RDB System for the Flat File System (on page 3):
+The following is an RDB system equating to the information requirements of the above 
+Flat File system.  Our Relational Database design will be based on an Entity Relationship Diagram.
+
+An Entity Relationship Diagram is a representation of the data in a particular business scenario.
+It is intended to record 2 things.
+			1.		The “Entities” or “things” about which we are likely to record data.
+			2.		The “Inter-relationships” between those Entities.
+					A relationship can be classified as
+							1:1		“One		to	 One”
+							1:N		“One		to	 Many”
+							M:N		“Many	to	 Many”
+The following is an Entity Relationship Diagram (ER) for the above Employee scenario on page 3.
+(Rigorous analysis of an organisation’s data is necessary to design the structure of these Entities).
+
+			 
+
+The corresponding Tables will be as follows:
+					Department						Employee						Employee Grade
+			PK	Dept_Code					PK	Emp_No					PK	Grade_Code
+					Dept_Desc							Emp_Name						Grade_Desc
+															Emp_Age
+													FK	Dept_Code
+													FK	Grade_Code
+Here, there are two  1:N  Relationships
+		Employs	A Department “Employs” many Employees.
+						An employee works in 1 Department but each department will have many employees
+						Therefore, we put the “crows feet” on the Employee side.
+		Has			A Grade “Has” many Employees.
+						An employee is 1 particular grade but each grade will have many employees.
+						Therefore we put the “crows feet” on the Employee side.
+
+Note:		A Primary Key (PK)	is an attribute or combination of attributes 
+											that uniquely identify a single row in a table.  
+			There must be a Primary Key defined on every table.
+			Therefore for the 3 tables above we have Emp_No,  Dept_Code  and  Grade_Code 
+			as the Primary Keys on their respective tables.  A Primary Key value has to be unique.
+			A Foreign Key (FK)	in one table is a Primary Key attribute from a different table 
+											that has been “posted in” to represent a “relationship” 
+											between the 2 tables.
+
+			It is the PK/FK link that implements the relationship between 2 tables. (note: use for Joins)
+			There may or may not be a Foreign Key defined on a table.  
+			A Foreign Key value is not necessarily unique (in the table it is posted into).
+			Thus, in this example, we post the PK  Dept_Code of the Department Table
+			and the PK Grade_Code of the Grade Table as Foreign Keys in the Employee Table.
+							Table 1 - Department
+PK
+DEPT CODE	DEPT DESC
+IS	COMPUTER DIVISION
+PERS	PERSONNEL
+
+							Table 2 - Grade
+PK
+GRADE CODE	GRADE DESC	GRADE DAYS LEAVE
+CO	CLERICAL OFFICER	22
+EO	EXECUTIVE OFFICER	23
+HEO	HIGHER EXECUTIVE OFFICER	27
+
+							Table 3 - Employee
+PK											 FK					FK
+EMP NO	EMP NAME	AGE	DEPT CODE	GRADE CODE
+001	SANDRA	22	IS	CO
+002	MARY	26	PERS	HEO
+003	VEG	30	IS	EO
+004	GARY	25	IS	HEO
+005	PEARSE	24	IS	HEO
+
+3.		RDB Definitions:
+In order to answer questions such as:  What is a Database (DB)?,  a Relational Database (RDB) etc.?
+the following is a small list of general terms and descriptions concerning Databases.
+
+A Database (DB) is a logically coherent (structured) collection of data with some inherent meaning.
+			A random collection of data should not be referred to as a Database.
+			(There are many types of DB:  Flat file,  Hierarchical,  Inverted,  Relational,  NoSQL  etc.)
+A Relational Database (RDB) is a DB in which Entities (Relations) are represented by Tables
+			and the Relationships between the Entities are represented by PK/FK links.
+			A Relational Database is a database that conforms to the model as defined by Boyce/Codd.
+			One of the main characteristics is that use of the data “may” be shared by many users.
+A Database Management System (DBMS) is a collection of programs (a S/W suite or product)
+			that enables us to create, use & maintain a RDB.
+			Note:		A Relational Database is designed not purchased.  It is the DBMS we purchase!
+An Entity is a  “thing”  about which we are likely to record data.
+A Schema is a definition of the RDB:  i.e. the Tables X, Y, Z;   columns x1, x2, x3 etc.
+
+
+SQL (Structured Query Language) is the computer language we use to Create, Maintain 
+		and Use a RDB.  It is often classified by two subsets  ( but it is all just SQL ! )
+		DDL ( Data Definition Language )		-  Create Tables,  Domains  			etc   (by DBA)
+		DML ( Data Manipulation Language )	-  Select,  Insert,  Update,  Delete	etc   (by App Devel)
+			We can use  “Interactive SQL”  or  “Embedded SQL”  i.e. within an Application Program.
+
+E.g.  PC DBMS	   MS Access is a DBMS – it is not a RDB (though it has a sample RDB: Northwind)
+						   However, we can use  it to create a RDB, (Sharing is limited despite MS spiel).
+E.g.  Mainframe DBMS		Oracle Rdb is similarly a DBMS for OpenVMS systems.   
+										It is basically the old DEC Rdb but now supported by Oracle.
+E.g.  Client Server DBMS		SQL Server 2017 is Microsoft’s DBMS & is used in the SDM world.
+
+4.	 Platform Architectures		SDM Platform  &  Generic RDBMS  model:
+
+	 SDM Model:  -  BOMi2 & BOMi4 :
+
+	SDM Environment	:	The architecture in the “BOMi” ( Business Object Model implementation) 
+ 									World is slightly different.  There are a number of layers (of software) 
+ 									between, say an Application Program and the DBMS.  However, the 
+ 									underlying feature is that the Relational Database,  SQL Server, is at the 
+ 									bottom Data Layer.
+
+ 
+
+
+
+	BOMi2 Environment:
+				The above diagram is a schema for the BOMi2 Platform.  
+				The BOM Clients 1 to N at the top of the diagram are the Users using the SDM
+				application on their PCs.  These are known  as “Fat Clients”  (compare “Thin Clients”).
+				This means there is quite an amount of software running on their PCs dedicated 
+				to running the SDM Application before other software runs and gets data at the lower
+				levels from the VMS & SQL Server Databases.
+
+	BOMi4 Environment:
+				Initially, the BOMi4 Platform did not talk to the VMS Database.  
+ 				However, later versions of the BOMi4 Application talk to the BOMi2 Application  - 
+ 				which in turn talks to the VMS DB in addition to the SQL Server Databases) 
+ 				via “Restful Objects”.
+				Latest Position … = …
+
+	VMS Environment:
+				An Application Program may refer to e.g. a Batch Cobol program implementing 
+				a particular piece of business functionality e.g. “The Cheque Print Program”. 
+				An Application Program may refer to an ACMS/Cobol Online transaction application 
+						e.g. ISTS - Payment Enquiries (Claim Payment Maintenance !)
+				Some of the associated Cobol programs will have “Embedded SQL” in them.
+
+	Generic RDBMS Model:
+ 
+
+
+ 
+ 5.		Basic Relational Model – Key Terms:
+
+*	The following lists some key terms used in a RDB System:
+	Entity					:	Name used in Design 				for the “thing” about which we record data.
+	Table					:	Name used in Implementation	for the “thing” about which we record data.
+	Primary Key (PK)	:	Sufficient columns to uniquely identify a single row.
+	Foreign Key (FK)	:	A PK that has been posted in to 1 table from a different table 
+ 									and is used to implement a relationship between entities.
+	Column/Attribute	:	The individual data items of each entity.
+	Row						:	A single instance of an entity (all column values).
+	Index					:	Usually on the PK but may be on other attributes (performance).
+	Domain					:	A generic data type used to define certain attributes.  E.g. PPSN would have
+									its own domain and any PPSN within the DB would be defined on this.
+									A particular  PK/FK link should be defined on the same domain.
+									See	Programmability    Types    User-Defined Data Types
+ 									e.g.	Column  pps_no  is defined on domain  dbo.pps_no (char(9), null)
+	Null						:	Represents an “Absence of a value” in an attribute.
+									It is Not a Space value for a Char attribute nor Zero for a Numeric attribute.
+*	Two very important rules:
+	Entity Integrity 		:	There should Not be a NULL in the Primary Key (PK).		
+									This is because we want each row to be unique (uniquely identifiable).	
+
+	Referential Integrity:	The Foreign Key (FK) value should be either:
+										1.  A Primary Key (PK) value
+									or	2.  It must be “Wholly Null”.
+					GMcC expl.		i.e. If ( the FK has  > 1  column (& by implication the PK has > 1 col))
+												Then the value of FK columns for a particular row either
+													a)	 must match all columns of the PK value in the parent table
+												or	b)	 must all be Null, not just some of them.
+
+6.   Corresponding Terms:		RDB versus Flat File Systems:
+
+		RDB							:	Flat File System
+		Entities						:	File
+		Tables						:	File
+		Row							:	Record
+		Column/Attribute		:	Field
+		Primary Key (PK)		:	Key
+		Foreign Key (FK)		:	no equivalent
+		Index						:	Index
+		Domains					:	e.g.  a generic  Pic X(5)  or  Pic S9(4)v9(2)
