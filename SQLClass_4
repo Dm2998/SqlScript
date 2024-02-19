@@ -1,0 +1,221 @@
+//////////////////////////////
+
+
+
+Updtae loc_physical_Terminal 
+	Set Lo_code = 111,
+		Username='diego',
+where locphys_termnal_ID=
+
+
+select top 5 * from customer_link;
+
+select top 5 * from customer;
+
+select count (*) from customer;
+
+
+
+/////////////////////////////
+
+
+USE [dbBommain]
+GO
+
+
+select [customer_id]
+
+from customer 
+
+GO
+////////////////////////////
+
+select [case_id],[client_title],[sex],[deceased_ind]
+
+
+
+from [customer],[customer_case]
+
+
+
+
+
+
+/////////////////////////////////////
+
+
+
+SELECT
+    cc.[case_id],
+    c.[client_title],
+    c.[sex],
+    c.[deceased_ind]
+FROM
+    [customer] c
+JOIN
+    [customer_case] cc ON c.[case_id] = cc.[case_id]
+WHERE
+    cc.[case_id] = 27683
+    AND c.[sex] = 'M';
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
+day 4 01/02/24
+
+SQL 
+
+
+select top 5 * from [customer_case];
+
+
+--table for customer and customer_case//////////////
+
+SELECT top 5  [case_id],[client_title],[sex],[deceased_ind] 
+
+FROM [customer]
+
+JOIN [customer_case] ON [case_id] = [case_id]
+
+WHERE[case_id] = 27683 AND [sex] = 'M';
+
+
+--//////////////////////
+select * from customer;
+
+select client_firstname, mothers_birth_surname, household_start_date, language_pref_code
+from customer
+where mothers_birth_surname = 'JONES';
+
+
+--table for country////////////////
+
+select top 5 country_acode, country_name, date_of_agreement
+from country
+--where country_name = 'IRELAND' and client_firstname = 
+
+
+--//////////////////////////////////////////
+
+
+select count (*)
+from country
+where country_name like 'FRANCE';
+
+--//////////////////////////////////// Practical from Gary
+
+
+--select * from customer where PPS_NO = '1234567';
+
+--select * from customer where PPS_NO = '1234567'
+--and client_firstname = 'Medina';
+
+--select * from customer where customer_id = 3; 
+
+
+
+---///////////////////////////////////////
+
+select top 5 customer_id as cid, scheme_ncode as sch from clain_contanuous;
+
+
+select top 5 * from [customer_case];
+
+
+
+//////////////////////////////////////////
+
+
+/*Day 4 */
+select *
+from print_run;
+
+select descr, max_pages_per_run
+from print_run
+where max_pages_per_run >= 2500;
+
+
+/////////////////////////////////////////////
+
+DAy5 classess Join  
+
+
+
+select * from customer;
+
+select * from Customer_Link;
+
+SELECT
+    C.customer_id,
+	 CL.pps_no,
+	C.client_firstname,
+    C.client_surname
+   
+FROM
+    customer C, customer_link CL
+WHERE
+	C.customer_id = CL.customer_id
+and CL.pps_no = '000123Y';
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+
+select * from customer;
+
+select * from Customer_Link;
+
+SELECT
+    C.customer_id,
+	CL.pps_no,
+	C.client_firstname,
+    C.client_surname,
+	C.mothers_birth_surname
+   
+FROM
+    customer C, customer_link CL
+WHERE
+	C.customer_id = CL.customer_id
+and CL.pps_no = 'I WOULD LOVE A PINT';
+and CL.pps_no = '0004489I';
+
+-- example  
+
+
+SELECT
+    C.customer_id,
+    CL.pps_no,
+    C.client_firstname,
+    C.client_surname,
+    C.mothers_birth_surname
+FROM
+    customer AS C
+JOIN
+    customer_link AS CL ON C.customer_id = CL.customer_id
+--WHERE C.customer_id = CL.customer_id
+    and CL.pps_no = '0004489I';
+
+
+
+\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\
+
+SELECT
+    C.customer_id,
+	F.phone_number_id,
+	CL.pps_no,
+	C.client_firstname,
+    C.client_surname,
+	C.mothers_birth_surname,
+	CA.customer_id
+   
+FROM
+    customer C, customer_link CL, Customer_telephone_number F, customer_case CA
+WHERE
+	C.customer_id = CL.customer_id
+and CL.customer_id = F.customer_id
+and F.phone_number_id = CA.case_id
+and CA.customer_id = '3527';
+
+
+
