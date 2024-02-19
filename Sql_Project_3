@@ -1,0 +1,101 @@
+#SQL
+
+-- Create Cars table
+
+CREATE TABLE Nivea_Cars (
+
+  CarID  INT IDENTITY (1,1) NOT NULL PRIMARY KEY,
+
+  Model varchar(50) NOT NULL,
+
+  Price decimal(9,2) NOT NULL,
+
+  Year int NOT NULL,
+
+  Colour varchar(20) NOT NULL,
+
+  Quantity int NOT NULL
+
+ 
+
+      
+
+);
+
+ 
+
+-- Create Customer table
+
+CREATE TABLE Nivea_Customers(
+
+  CustomerID INT IDENTITY (1,1) NOT NULL PRIMARY KEY,
+
+  Name varchar(50) NOT NULL,
+
+  Address varchar(100) NOT NULL,
+
+  Email varchar(50) NOT NULL,
+
+  Mobile_No varchar(15) NOT NULL
+
+);
+
+ 
+
+-- Create Inquiries table
+
+CREATE TABLE Nivea_Inquiries (
+
+  InquiryID INT IDENTITY (1,1) NOT NULL PRIMARY KEY,
+
+  CarID int NOT NULL REFERENCES Nivea_Cars(CarID),
+
+  Message varchar(255) NOT NULL,
+
+  CustomerID int NOT NULL REFERENCES Nivea_Customers(CustomerID)
+
+);
+
+ 
+
+ 
+
+-- Insert data into Cars table
+
+INSERT INTO Nivea_Cars (CarID, Model, Price, Year, Colour, Quantity)
+
+VALUES
+
+  (1, 'Toyota Camry', 25000.00, 2020, 'Blue', 5),
+
+  (2, 'Honda Accord', 27000.50, 2021, 'Red', 3),
+
+  (3, 'Ford Mustang', 35000.75, 2023, 'Black', 2);
+
+ 
+
+-- Insert data into Customer table
+
+INSERT INTO Nivea_Customers (Name, Address, Email, Mobile_No)
+
+VALUES
+
+  ('Jose Doe', '123 Main St', 'john.doe@example.com', '123-456-7890'),
+
+  ('Diego Smith', '456 Oak Ave', 'jane.smith@example.com', '987-654-3210'),
+
+  ('Maradona Johnson', '789 Pine Ln', 'bob.johnson@example.com', '555-123-4567');
+
+ 
+
+-- Insert data into Inquiries table
+
+INSERT INTO Nivea_Inquiries (InquiryID, CarID, Message, CustomerID)
+
+VALUES
+
+  (1, 1, 'Interested in the Toyota Camry', 1),
+
+  (2, 2, 'Questions about the Honda Accord', 2),
+
+  (3, 3, 'Inquiring about the Ford Mustang', 3);
